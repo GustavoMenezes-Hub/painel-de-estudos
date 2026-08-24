@@ -4,11 +4,6 @@
 
 O **Painel de Estudos** é uma aplicação pessoal para organização acadêmica, pensada para ajudar o estudante a acompanhar matérias, prazos de entregas e sessões de estudo focado. O objetivo é resolver um problema real da rotina universitária: centralizar em um só lugar o que precisa ser entregue, quando, e permitir sessões de estudo produtivas usando a técnica Pomodoro.
 
-O projeto será desenvolvido com:
-- **Frontend Web**: HTML, CSS e JavaScript
-- **Frontend Mobile**: aplicação nativa Android gerada a partir do mesmo código web utilizando **Capacitor**
-- **Backend**: Python com **Flask**, expondo uma API REST consumida por ambos os frontends, com persistência em **SQLite**
-
 ## Funcionalidades
 
 - **Cadastro de matérias**: o usuário pode criar e gerenciar suas disciplinas
@@ -27,6 +22,3 @@ O projeto será desenvolvido com:
 3. **Exemplo prático**: durante uma aula, o usuário faz uma anotação rápida vinculada à matéria (ex: "revisar bijetividade antes da prova") e a marca como pendente de revisão. Ao chegar em casa, o painel destaca essa nota entre as pendentes; o usuário toca nela e inicia diretamente uma sessão de Pomodoro para estudar o assunto, com seu material de apoio (livro, PDF, caderno) em mãos.
 4. Ao final da sessão de estudo, o usuário marca a nota como estudada, e ela sai da lista de pendências, permanecendo disponível no histórico da matéria.
 
-## Arquitetura
-
-A aplicação segue o modelo cliente-servidor: o backend Flask expõe rotas HTTP (GET/POST/PUT/DELETE) para matérias, entregas e notas, enquanto o frontend (web e mobile) consome essa API via `fetch`. O mesmo código de frontend é reutilizado para gerar a versão mobile nativa através do Capacitor, evitando duplicação de interface entre as duas plataformas.
