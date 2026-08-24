@@ -5,7 +5,7 @@
 O **Painel de Estudos** é uma aplicação pessoal para organização acadêmica, pensada para ajudar o estudante a acompanhar matérias, prazos de entregas e sessões de estudo focado. O objetivo é resolver um problema real da rotina universitária: centralizar em um só lugar o que precisa ser entregue, quando, e permitir sessões de estudo produtivas usando a técnica Pomodoro.
 
 O projeto será desenvolvido com:
-- **Frontend Web**: HTML, CSS e JavaScript puro
+- **Frontend Web**: HTML, CSS e JavaScript
 - **Frontend Mobile**: aplicação nativa Android gerada a partir do mesmo código web utilizando **Capacitor**
 - **Backend**: Python com **Flask**, expondo uma API REST consumida por ambos os frontends, com persistência em **SQLite**
 
