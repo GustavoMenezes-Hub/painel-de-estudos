@@ -17,6 +17,7 @@ Sim, três migrations:
 backend/seed.sql
 
 4. Quais os endpoints que você irá implementar inicialmente? Cada endpoint deve ser um método e um path. Explique em um parágrafo por que você resolveu priorizar a implementação desses endpoints.
+
 GET /api/materias
 POST /api/materias
 GET /api/materias/<id>/entregas
