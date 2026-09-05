@@ -1,0 +1,7 @@
+CREATE TABLE entregas (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    materia_id INTEGER NOT NULL REFERENCES materias(id),
+    titulo TEXT NOT NULL,
+    data_vencimento DATE NOT NULL,
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
