@@ -5,4 +5,4 @@ def find_all():
     cursor = conexao.execute("SELECT id, nome, icone, criado_em FROM materias")
     linhas = cursor.fetchall()
     conexao.close()
-    return {dict(linha) for linha in linhas}
+    return [dict(linha) for linha in linhas]
