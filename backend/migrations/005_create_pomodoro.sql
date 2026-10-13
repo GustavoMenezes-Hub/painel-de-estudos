@@ -8,4 +8,7 @@ CREATE TABLE pomodoro (
     id_materias INTEGER NOT NULL,
     CONSTRAINT fk_pomodoro_materias FOREIGN KEY (id_materias)
         REFERENCES materias(id_materias)
+    id_anotacoes INTEGER,
+    CONSTRAINT fk_pomodoro_anotacoes FOREIGN KEY (id_anotacoes)
+        REFERENCES anotacoes(id_anotacoes)
 );
