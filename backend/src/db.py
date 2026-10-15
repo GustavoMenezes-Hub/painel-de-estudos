@@ -1,6 +1,12 @@
-import sqlite3
+import os 
+import psycopg2
+from psycopg2.extras import RealDictCursor
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def get_connection():
-    conexao = sqlite3.connect("database.db")
-    conexao.row_factory = sqlite3.Row
-    return conexao
+    return psycopg2.connect(
+        os.environ["DATABASE_URL"],
+        cursor_factory=RealDictCursor
+    )
