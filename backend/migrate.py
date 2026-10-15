@@ -1,7 +1,10 @@
-import sqlite3
+import psycopg2
 import os
+from dotenv import load_dotenv
 
-conexao = sqlite3.connect("database.db")
+load_dotenv()
+
+conexao = psycopg2.connect(os.environ["DATABASE_URL"])
 cursor = conexao.cursor()
 
 pasta_migations = "migrations"
@@ -12,8 +15,9 @@ for arquivo in arquivos:
         with open(caminho, "r", encoding="utf-8") as f:
             sql = f.read()
             print(f"Executando migração: {arquivo}")
-            cursor.executescript(sql)
+            cursor.execute(sql)
 
 conexao.commit()
+cursor.close()
 conexao.close()
 print("migrations concluídas.")
