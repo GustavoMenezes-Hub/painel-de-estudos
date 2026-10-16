@@ -9,3 +9,13 @@ def find_all():
     cursor.close()
     conexao.close()
     return [Materia.from_row(linha) for linha in linhas]
+
+def create(nome, descricao, id_usuarios):
+    conexao = get_connection()
+    cursor = conexao.cursor()
+    cursor.execute("INSERT INTO materias (nome, descricao, id_usuarios) VALUES (%s, %s, %s) RETURNING id_materias, nome, descricao, data_criacao, id_usuarios", (nome, descricao, id_usuarios))
+    linha = cursor.fetchone()
+    conexao.commit()
+    cursor.close()
+    conexao.close()
+    return Materia.from_row(linha)
