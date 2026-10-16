@@ -1,3 +1,4 @@
+from src.materias.materias_entity import Materia
 from src.db import get_connection
 
 def find_all():
@@ -7,4 +8,4 @@ def find_all():
     linhas = cursor.fetchall()
     cursor.close()
     conexao.close()
-    return [dict(linha) for linha in linhas]
+    return [Materia.from_row(linha) for linha in linhas]
