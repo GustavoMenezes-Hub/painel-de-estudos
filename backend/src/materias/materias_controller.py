@@ -8,12 +8,21 @@ def get_all():
     return jsonify(materias_dicts)
 
 def create():
-    dados = request.get_json()
+    dados = request.get_json(silent=True)
     try:
         materia = service.create(dados)
-    except ValueError as erro:
-        return jsonify({"error": {"code": "VALIDATION_ERROR", "message": str(erro)}}), 400
+    except ApiError as erro:
+        return jsonify({"error": {"message": erro.mensagem}}), erro.status
     return jsonify(materia.to_dict()), 201
+
+
+def update(id_materias):
+    dados = request.get_json(silent=True)
+    try:
+        materia = service.update(id_materias, dados)
+    except ApiError as erro:
+        return jsonify({"error": {"message": erro.mensagem}}), erro.status
+    return jsonify(materia.to_dict()), 200
 
 def get_by_id(id_materias):
     try:
