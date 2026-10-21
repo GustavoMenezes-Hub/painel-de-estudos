@@ -30,3 +30,7 @@ def get_by_id(id_materias):
     if materia is None:
         raise ApiError("Matéria não encontrada.", 404)
     return materia
+
+def delete(id_materias):
+    if not repository.delete(id_materias):
+        raise ApiError("Matéria não encontrada.", 404)

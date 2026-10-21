@@ -40,3 +40,15 @@ def update(id_materias, nome, descricao):
     finally:
         conexao.close()
     return Materia.from_row(linha) if linha else None
+
+def delete(id_materias):
+    conexao = get_connection()
+    try:
+        cursor = conexao.cursor()
+        cursor.execute("DELETE FROM materias WHERE id_materias = %s RETURNING id_materias", (id_materias,))
+        linha = cursor.fetchone()
+        conexao.commit()
+        cursor.close()
+    finally:
+        conexao.close()
+    return True if linha else False

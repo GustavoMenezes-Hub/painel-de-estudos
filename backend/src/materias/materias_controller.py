@@ -23,3 +23,7 @@ def get_by_id(id_materias):
     materia = service.get_by_id(id_materias)
     return jsonify(materia.to_dict())
 
+def delete(id_materias):
+    service.delete(id_materias)
+    return "", 204
+
