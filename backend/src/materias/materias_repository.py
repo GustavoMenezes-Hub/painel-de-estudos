@@ -30,11 +30,13 @@ def create(nome, descricao, id_usuarios):
     return Materia.from_row(linha)
 
 def update(id_materias, nome, descricao):
-    conexao= get_connection()
-    cursor = conexao.cursor()
-    cursor.execute("UPDATE materias SET nome = %s, descricao = %s WHERE id_materias = %s RETURNING id_materias, nome, descricao, data_criacao, id_usuarios", (nome, descricao, id_materias))
-    linha = cursor.fetchone()
-    conexao.commit()
-    cursor.close()
-    conexao.close()
+    conexao = get_connection()
+    try:
+        cursor = conexao.cursor()
+        cursor.execute("UPDATE materias SET nome = %s, descricao = %s WHERE id_materias = %s RETURNING id_materias, nome, descricao, data_criacao, id_usuarios", (nome, descricao, id_materias))
+        linha = cursor.fetchone()
+        conexao.commit()
+        cursor.close()
+    finally:
+        conexao.close()
     return Materia.from_row(linha) if linha else None

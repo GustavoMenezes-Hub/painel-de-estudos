@@ -9,24 +9,17 @@ def get_all():
 
 def create():
     dados = request.get_json(silent=True)
-    try:
-        materia = service.create(dados)
-    except ApiError as erro:
-        return jsonify({"error": {"message": erro.mensagem}}), erro.status
+    materia = service.create(dados)
     return jsonify(materia.to_dict()), 201
+
 
 
 def update(id_materias):
     dados = request.get_json(silent=True)
-    try:
-        materia = service.update(id_materias, dados)
-    except ApiError as erro:
-        return jsonify({"error": {"message": erro.mensagem}}), erro.status
+    materia = service.update(id_materias, dados)
     return jsonify(materia.to_dict()), 200
 
 def get_by_id(id_materias):
-    try:
-        materia = service.get_by_id(id_materias)
-    except ApiError as erro:
-        return jsonify({"error": {"message": erro.mensagem}}), erro.status
+    materia = service.get_by_id(id_materias)
     return jsonify(materia.to_dict())
+

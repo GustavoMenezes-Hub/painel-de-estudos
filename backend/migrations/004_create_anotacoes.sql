@@ -6,5 +6,5 @@ CREATE TABLE anotacoes (
     data_criacao TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     id_materias INTEGER NOT NULL,
     CONSTRAINT fk_anotacoes_materias FOREIGN KEY (id_materias)
-      REFERENCES materias(id_materias)
+      REFERENCES materias(id_materias) ON DELETE CASCADE
 );
