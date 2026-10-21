@@ -22,8 +22,11 @@ def _data(dados):
 
 def _situacao(dados):
     valor = dados.get("situacao")
-    if valor not in ("Pendente", "Realizado"):
-        raise ApiError("situacao deve ser Pendente ou Realizado")
+    if not isinstance(valor, str):
+        raise ApiError("situacao deve ser pendente ou realizado")
+    valor = valor.strip().lower()
+    if valor not in ("pendente", "realizado"):
+        raise ApiError("situacao deve ser pendente ou realizado")
     return valor
 
 def _id_materia(dados, id_usuario):
@@ -67,8 +70,15 @@ def atualizar(id_entrega, id_usuario, dados):
         campos["id_materias"] = _id_materia(dados, id_usuario)
     if not campos:
         raise ApiError("Informe algum campo para atualizar")
-    return repository.update(id_entrega, campos)
+    entrega_atualizada = repository.update(id_entrega, id_usuario, campos)
+
+    if entrega_atualizada is None:
+        raise ApiError("Entrega não encontrada para este usuário", 404)
+
+    return entrega_atualizada
 
 def excluir(id_entrega, id_usuario):
     get_one(id_entrega, id_usuario)
-    repository.delete(id_entrega)
+
+    if not repository.delete(id_entrega, id_usuario):
+        raise ApiError("Entrega não encontrada para este usuário", 404)
