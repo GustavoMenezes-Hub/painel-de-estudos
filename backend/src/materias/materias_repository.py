@@ -10,6 +10,15 @@ def find_all():
     conexao.close()
     return [Materia.from_row(linha) for linha in linhas]
 
+def find_by_id(id_materias):
+    conexao = get_connection()
+    cursor = conexao.cursor()
+    cursor.execute("SELECT id_materias, nome, descricao, data_criacao, id_usuarios " "FROM materias WHERE id_materias = %s", (id_materias,))
+    linha = cursor.fetchone()
+    cursor.close()
+    conexao.close()
+    return Materia.from_row(linha) if linha else None
+
 def create(nome, descricao, id_usuarios):
     conexao = get_connection()
     cursor = conexao.cursor()
@@ -19,3 +28,13 @@ def create(nome, descricao, id_usuarios):
     cursor.close()
     conexao.close()
     return Materia.from_row(linha)
+
+def update(id_materias, nome, descricao):
+    conexao= get_connection()
+    cursor = conexao.cursor()
+    cursor.execute("UPDATE materias SET nome = %s, descricao = %s WHERE id_materias = %s RETURNING id_materias, nome, descricao, data_criacao, id_usuarios", (nome, descricao, id_materias))
+    linha = cursor.fetchone()
+    conexao.commit()
+    cursor.close()
+    conexao.close()
+    return Materia.from_row(linha) if linha else None
