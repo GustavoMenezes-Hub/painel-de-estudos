@@ -2,14 +2,16 @@ import os
 from dotenv import load_dotenv
 from flask import Flask, request
 
+load_dotenv()
+
 from src.error_handlers import registrar_error_handlers
 from src.materias.materias_route import materias_bp
 from src.usuarios.usuarios_route import usuarios_bp
 from src.entregas.entregas_route import entregas_bp
 from src.auth.auth_route import auth_bp
 from src.auth.security import verificar_autenticacao
-
-load_dotenv()
+from src.anotacoes.anotacoes_route import anotacoes_bp
+from src.pomodoro.pomodoro_route import pomodoro_bp
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
@@ -18,6 +20,8 @@ app.register_blueprint(materias_bp)
 app.register_blueprint(usuarios_bp)
 app.register_blueprint(entregas_bp)
 app.register_blueprint(auth_bp)
+app.register_blueprint(anotacoes_bp)
+app.register_blueprint(pomodoro_bp)
 
 registrar_error_handlers(app)
 
