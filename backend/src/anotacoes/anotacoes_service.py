@@ -4,54 +4,75 @@ from src.anotacoes.anotacoes_repository import AnotacoesRepository
 class AnotacoesService:
 
     @staticmethod
-    def listar_anotacoes(id_materias):
-        return AnotacoesRepository.listar(id_materias)
+    def _id_materia(valor):
+        if type(valor) is not int or valor <= 0:
+            raise ApiError("id_materias deve ser inteiro positivo.", 400)
+        return valor
 
     @staticmethod
-    def buscar_anotacao(id_anotacoes):
-        anotacao = AnotacoesRepository.buscar_por_id(id_anotacoes)
-        if not anotacao:
-            raise ApiError("Anotação não encontrada.", 404)
+    def _situacao(valor):
+        if valor not in ("pendente_revisao", "iniciar_estudo", "estudada"):
+            raise ApiError("Situação inválida para anotação.", 400)
+        return valor
+
+    @staticmethod
+    def _texto(valor):
+        if not isinstance(valor, str) or not valor.strip():
+            raise ApiError("O campo 'texto' é obrigatório.", 400)
+        return valor.strip()
+
+    @staticmethod
+    def listar_anotacoes(id_materias, id_usuario):
+        if id_materias is not None:
+            if not id_materias.isdecimal() or int(id_materias) <= 0:
+                raise ApiError("id_materias deve ser inteiro positivo.", 400)
+            id_materias = int(id_materias)
+        return AnotacoesRepository.listar(id_usuario, id_materias)
+
+    @staticmethod
+    def buscar_anotacao(id_anotacoes, id_usuario):
+        anotacao = AnotacoesRepository.buscar_por_id(id_anotacoes, id_usuario)
+        if anotacao is None:
+            raise ApiError("Anotação não encontrada para este usuário.", 404)
         return anotacao
 
     @staticmethod
-    def criar_anotacao(dados):
-        texto = dados.get("texto")
-        id_materias = dados.get("id_materias")
-        situacao = dados.get("situacao", "pendente_revisao")
-
-        if not texto or not texto.strip():
-            raise ApiError("O campo 'texto' é obrigatório.", 400)
-        
-        if not id_materias:
-            raise ApiError("O campo 'id_materias' é obrigatório.", 400)
-
-        # Valida se a matéria existe
-        if not AnotacoesRepository.verificar_materia_existe(id_materias):
-            raise ApiError("Matéria informada não foi encontrada.", 404)
-
-        return AnotacoesRepository.criar(texto.strip(), situacao, id_materias)
+    def criar_anotacao(dados, id_usuario):
+        if not isinstance(dados, dict):
+            raise ApiError("Envie um objeto JSON.", 400)
+        texto = AnotacoesService._texto(dados.get("texto"))
+        id_materias = AnotacoesService._id_materia(dados.get("id_materias"))
+        situacao = AnotacoesService._situacao(dados.get("situacao", "pendente_revisao"))
+        if not AnotacoesRepository.verificar_materia_existe(id_materias, id_usuario):
+            raise ApiError("Matéria não encontrada para este usuário.", 404)
+        nova = AnotacoesRepository.criar(texto, situacao, id_materias, id_usuario)
+        if nova is None:
+            raise ApiError("Matéria não encontrada para este usuário.", 404)
+        return nova
 
     @staticmethod
-    def atualizar_anotacao(id_anotacoes, dados):
-        anotacao_atual = AnotacoesService.buscar_anotacao(id_anotacoes)
-
-        texto = dados.get("texto")
-        situacao = dados.get("situacao")
-        id_materias = dados.get("id_materias")
-
-        novo_texto = texto.strip() if texto is not None else anotacao_atual["texto"]
-        nova_situacao = situacao if situacao is not None else anotacao_atual["situacao"]
-        novo_id_materias = id_materias if id_materias is not None else anotacao_atual["id_materias"]
-
-        if novo_id_materias != anotacao_atual["id_materias"]:
-            if not AnotacoesRepository.verificar_materia_existe(novo_id_materias):
-                raise ApiError("Matéria informada não foi encontrada.", 404)
-
-        return AnotacoesRepository.atualizar(id_anotacoes, novo_texto, nova_situacao, novo_id_materias)
+    def atualizar_anotacao(id_anotacoes, dados, id_usuario):
+        atual = AnotacoesService.buscar_anotacao(id_anotacoes, id_usuario)
+        if not isinstance(dados, dict) or not dados:
+            raise ApiError("Informe campos para atualizar.", 400)
+        texto = AnotacoesService._texto(dados["texto"]) if "texto" in dados else atual["texto"]
+        situacao = AnotacoesService._situacao(dados["situacao"]) if "situacao" in dados else atual["situacao"]
+        id_materias = (AnotacoesService._id_materia(dados["id_materias"])
+                       if "id_materias" in dados else atual["id_materias"])
+        if not AnotacoesRepository.verificar_materia_existe(id_materias, id_usuario):
+            raise ApiError("Matéria não encontrada para este usuário.", 404)
+        if AnotacoesRepository.vinculada_a_pomodoro_de_outra_materia(
+            id_anotacoes, id_materias, id_usuario
+        ):
+            raise ApiError("Não é possível mover uma anotação vinculada a Pomodoro de outra matéria.", 409)
+        atualizada = AnotacoesRepository.atualizar(
+            id_anotacoes, texto, situacao, id_materias, id_usuario
+        )
+        if atualizada is None:
+            raise ApiError("Anotação não encontrada para este usuário.", 404)
+        return atualizada
 
     @staticmethod
-    def deletar_anotacao(id_anotacoes):
-        # Garante que existe antes de deletar
-        AnotacoesService.buscar_anotacao(id_anotacoes)
-        AnotacoesRepository.deletar(id_anotacoes)
+    def deletar_anotacao(id_anotacoes, id_usuario):
+        if not AnotacoesRepository.deletar(id_anotacoes, id_usuario):
+            raise ApiError("Anotação não encontrada para este usuário.", 404)
