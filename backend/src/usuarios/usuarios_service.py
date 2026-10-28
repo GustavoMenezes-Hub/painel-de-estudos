@@ -61,8 +61,12 @@ def atualizar(id_usuario, id_logado, dados):
         campos["senha_hash"] = generate_password_hash(_senha(dados))
     if not campos:
         raise ApiError("Informe nome, email ou senha para atualizar")
-    return repository.update(id_usuario, campos)
+    usuario_atualizado = repository.update(id_usuario, campos)
+    if usuario_atualizado is None:
+        raise ApiError("Usuário não encontrado", 404)
+    return usuario_atualizado
 
 def excluir(id_usuario, id_logado):
     get_one(id_usuario, id_logado)
-    repository.delete(id_usuario)
+    if not repository.delete(id_usuario):
+        raise ApiError("Usuário não encontrado", 404)

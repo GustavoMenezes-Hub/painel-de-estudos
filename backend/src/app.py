@@ -14,7 +14,10 @@ from src.anotacoes.anotacoes_route import anotacoes_bp
 from src.pomodoro.pomodoro_route import pomodoro_bp
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
+chave = os.environ.get("SECRET_KEY")
+if not chave:
+    raise RuntimeError("Configure SECRET_KEY no arquivo .env local antes de iniciar o Flask")
+app.config["SECRET_KEY"] = chave
 
 app.register_blueprint(materias_bp)
 app.register_blueprint(usuarios_bp)
@@ -30,8 +33,6 @@ def proteger_api():
     rotas_publicas = {
         ("POST", "/api/login"),
         ("POST", "/api/usuarios"),
-        ("GET", "/api/materias"),
-        ("POST", "/api/materias"),
     }
 
     if request.path.startswith("/api/") and request.method != "OPTIONS":
@@ -39,4 +40,5 @@ def proteger_api():
             return verificar_autenticacao()
 
 if __name__ == "__main__":
-    app.run(port=3000, debug=True)
+    # O depurador só é habilitado explicitamente em desenvolvimento local.
+    app.run(port=3000, debug=os.environ.get("FLASK_DEBUG") == "1")
