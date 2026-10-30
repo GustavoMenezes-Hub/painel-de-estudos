@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, request
+from flasgger import Swagger
 
 load_dotenv()
 
@@ -14,6 +15,26 @@ from src.anotacoes.anotacoes_route import anotacoes_bp
 from src.pomodoro.pomodoro_route import pomodoro_bp
 
 app = Flask(__name__)
+
+swagger_template = {
+    "swagger": "2.0",
+    "info": {
+        "title": "API Painel de Estudos",
+        "description": "API para gerenciamento de matérias, entregas e estudos.",
+        "version": "1.0.0"
+    },
+    "securityDefinitions": {
+        "Bearer": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header",
+            "description": "Informe o token no formato: Bearer seu_token"
+        }
+    }
+}
+
+swagger = Swagger(app, template=swagger_template)
+
 chave = os.environ.get("SECRET_KEY")
 if not chave:
     raise RuntimeError("Configure SECRET_KEY no arquivo .env local antes de iniciar o Flask")
