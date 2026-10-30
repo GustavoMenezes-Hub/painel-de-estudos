@@ -7,5 +7,5 @@ CREATE TABLE entregas (
         CONSTRAINT chk_situacao_entrega CHECK (situacao IN ('pendente', 'realizado')),
     id_materias INTEGER NOT NULL,
     CONSTRAINT fk_entregas_materias FOREIGN KEY (id_materias)
-      REFERENCES materias(id_materias)
+      REFERENCES materias(id_materias) ON DELETE CASCADE
 );
