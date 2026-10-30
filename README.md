@@ -1,24 +1,28 @@
 # Painel de Estudos
 
-## Resumo do projeto
+## Sobre o projeto
 
-O **Painel de Estudos** é uma aplicação pessoal para organização acadêmica, pensada para ajudar o estudante a acompanhar matérias, prazos de entregas e sessões de estudo focado. O objetivo é resolver um problema real da rotina universitária: centralizar em um só lugar o que precisa ser entregue, quando, e permitir sessões de estudo produtivas usando a técnica Pomodoro.
+O **Painel de Estudos** é uma aplicação voltada à organização da rotina acadêmica. A proposta é reunir matérias, atividades, prazos, anotações e sessões de estudo em um único ambiente, ajudando o estudante a visualizar suas responsabilidades e aproveitar melhor o tempo. O projeto combina o acompanhamento das entregas com a técnica Pomodoro, incentivando uma rotina de estudos mais organizada e focada.
 
 ## Funcionalidades
 
-- **Cadastro de matérias**: o usuário pode criar e gerenciar suas disciplinas
-- **Entregas e prazos**: cada matéria pode ter atividades/entregas associadas, com data de vencimento
-- **Contagem regressiva**: exibição visual de quantos dias faltam para a próxima entrega
-- **Timer Pomodoro**: ciclos de 25 minutos de foco e 5 minutos de pausa (pausa longa a cada 4 ciclos), associados a uma matéria/tarefa específica
-- **Notas rápidas por matéria**: espaço para anotações curtas vinculadas a cada disciplina, com três estados possíveis:
-  - **Pendente de revisão**: nota marcada para ser revisada depois
-  - **Iniciar estudo a partir da nota**: um botão inicia diretamente um Pomodoro vinculado ao assunto da nota
-  - **Estudada**: após revisar, a nota é marcada como concluída e sai da lista de pendências, permanecendo no histórico
+**Usuários e autenticação**: cadastro e login para que cada estudante acesse e gerencie suas próprias informações.
+
+**Matérias**: organização das disciplinas, com possibilidade de cadastrar, consultar, atualizar e excluir matérias.
+
+**Entregas e prazos**: registro de atividades vinculadas às matérias, incluindo data de vencimento e situação da entrega.
+
+**Anotações**: criação de notas rápidas por matéria, que podem permanecer pendentes de revisão ou ser marcadas como estudadas.
+
+**Pomodoro**: registro de sessões de foco e pausa, com duração definida e associação a matérias e, quando aplicável, a anotações.
+
+A proposta da interface inclui um painel de prazos com contagem regressiva, um temporizador visual Pomodoro e a possibilidade de iniciar uma sessão de estudo a partir de uma anotação. Esses recursos visuais fazem parte da evolução planejada para o projeto.
 
 ## Fluxo de uso
 
-1. O usuário cadastra suas matérias (ex: Cálculo A, Discreta, Programação B) e, conforme surgem, as entregas/atividades de cada uma, com data de vencimento.
-2. No painel principal, ele visualiza rapidamente todas as matérias com a contagem regressiva da próxima entrega, identificando o que é mais urgente.
-3. **Exemplo prático**: durante uma aula, o usuário faz uma anotação rápida vinculada à matéria (ex: "revisar bijetividade antes da prova") e a marca como pendente de revisão. Ao chegar em casa, o painel destaca essa nota entre as pendentes; o usuário toca nela e inicia diretamente uma sessão de Pomodoro para estudar o assunto, com seu material de apoio (livro, PDF, caderno) em mãos.
-4. Ao final da sessão de estudo, o usuário marca a nota como estudada, e ela sai da lista de pendências, permanecendo disponível no histórico da matéria.
+O estudante começa criando sua conta e cadastrando as matérias do semestre. Conforme surgem provas e trabalhos, registra as entregas e suas datas de vencimento para acompanhar o que precisa ser feito.
+Durante as aulas, pode guardar anotações sobre assuntos que deseja revisar. Mais tarde, utiliza essas notas para organizar sessões de estudo focado, associando o tempo dedicado à disciplina correspondente. Ao finalizar uma atividade ou revisão, atualiza sua situação e mantém um histórico do progresso.
 
+## Tecnologias
+
+O backend utiliza **Python**, **Flask** e **PostgreSQL**, com uma **API REST** responsável pela autenticação e pelo gerenciamento dos dados. O projeto está em desenvolvimento, com a integração às interfaces de uso prevista para as próximas etapas.
