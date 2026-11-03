@@ -1,5 +1,11 @@
 .env
+.env.*
+/.env
 database.db
 __pycache__/
 *.pyc
+.venv/
 venv/
+.vscode/
+.pytest_cache/
+!backend/.env.example

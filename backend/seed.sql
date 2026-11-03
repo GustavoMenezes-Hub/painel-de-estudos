@@ -1,8 +1,8 @@
 TRUNCATE usuarios, materias, entregas, anotacoes, pomodoro
     RESTART IDENTITY CASCADE;
 
-INSERT INTO usuarios (nome, email) VALUES
-    ('Gustavo', 'gustavo@email.com');
+INSERT INTO usuarios (nome, email, senha_hash) VALUES
+    ('Gustavo', 'gustavo@email.com', 'scrypt:32768:8:1$uYAFLZ47drQkosAY$a9e8f0030e9805694add064d21cd753de5bcc5777029f3efff422a15db8416331d328fa316ba3e993561793744d2f16bf9e59a0df693d59e2fc0d34346016f08');
 
 INSERT INTO materias (nome, descricao, id_usuarios) VALUES
     ('Introdução à Administração', 'Fundamentos de administração', 1),
