@@ -61,5 +61,4 @@ def proteger_api():
             return verificar_autenticacao()
 
 if __name__ == "__main__":
-    # O depurador só é habilitado explicitamente em desenvolvimento local.
     app.run(port=3000, debug=os.environ.get("FLASK_DEBUG") == "1")

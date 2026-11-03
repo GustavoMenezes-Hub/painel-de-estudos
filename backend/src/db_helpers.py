@@ -1,5 +1,3 @@
-
-"""Acesso ao banco: reutiliza get_connection() do projeto."""
 from contextlib import contextmanager
 from datetime import date, datetime
 from src.db import get_connection
