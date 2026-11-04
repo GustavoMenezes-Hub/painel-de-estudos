@@ -39,6 +39,7 @@ chave = os.environ.get("SECRET_KEY")
 if not chave:
     raise RuntimeError("Configure SECRET_KEY no arquivo .env local antes de iniciar o Flask")
 app.config["SECRET_KEY"] = chave
+app.config["MAX_CONTENT_LENGTH"] = 6 * 1024 * 1024
 
 app.register_blueprint(materias_bp)
 app.register_blueprint(usuarios_bp)
