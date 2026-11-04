@@ -48,6 +48,8 @@ python seed.py
 
 O primeiro comando cria a estrutura do banco de dados. O segundo insere os dados de exemplo.
 
+**Importante:** o `migrate.py` executa todas as migrations (001 a 006) toda vez que roda, então use um banco recém-criado. Se o banco `painel_estudos` já existia de uma versão anterior, apague-o no pgAdmin e crie novamente antes de rodar os comandos acima.
+
 **Atenção:** o `seed.py` executa o `seed.sql`, que limpa e recria os registros das tabelas indicadas. Execute somente no banco local de testes.
 
 ## 5. Iniciar a API
@@ -98,5 +100,7 @@ Na documentação Swagger:
 | DELETE | `/api/materias/{id_materias}` | Excluir matéria |
 
 A documentação apresenta também os parâmetros, exemplos de requisição e respostas HTTP dessas operações.
+
+As demais entidades (usuários, entregas, anotações e Pomodoro) também possuem rotas em `/api/`, mas ainda não estão documentadas no Swagger. Nesta entrega, a documentação cobre o login e o CRUD de matérias.
 
 **Observação:** o servidor precisa permanecer em execução enquanto os testes estiverem sendo realizados.
