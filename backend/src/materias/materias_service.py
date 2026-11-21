@@ -1,5 +1,6 @@
 from . import materias_repository as repository
 from src.api_errors import ApiError
+from src.validacao import validar_texto_postgres
 
 def list_all(id_usuario):
     return repository.find_all(id_usuario)
@@ -13,6 +14,8 @@ def _validar_dados(dados):
         raise ApiError("O campo 'nome' deve ter entre 1 e 100 caracteres.", 400)
     if descricao is not None and not isinstance(descricao, str):
         raise ApiError("O campo 'descricao' deve ser texto.", 400)
+    validar_texto_postgres(nome, "nome")
+    validar_texto_postgres(descricao, "descricao", maximo=2_000)
     descricao = descricao.strip() or None if descricao is not None else None
     return nome.strip(), descricao
 

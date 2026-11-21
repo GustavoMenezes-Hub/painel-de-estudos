@@ -1,4 +1,4 @@
-CREATE TABLE materias (
+CREATE TABLE IF NOT EXISTS materias (
     id_materias INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     descricao TEXT,

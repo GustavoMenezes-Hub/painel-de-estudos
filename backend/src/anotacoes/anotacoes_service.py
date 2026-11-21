@@ -1,11 +1,12 @@
 from src.api_errors import ApiError
+from src.validacao import id_filtro, id_postgres, validar_texto_postgres
 from src.anotacoes.anotacoes_repository import AnotacoesRepository
 
 class AnotacoesService:
 
     @staticmethod
     def _id_materia(valor):
-        if type(valor) is not int or valor <= 0:
+        if not id_postgres(valor):
             raise ApiError("id_materias deve ser inteiro positivo.", 400)
         return valor
 
@@ -17,16 +18,14 @@ class AnotacoesService:
 
     @staticmethod
     def _texto(valor):
+        validar_texto_postgres(valor, "texto", maximo=10_000)
         if not isinstance(valor, str) or not valor.strip():
             raise ApiError("O campo 'texto' é obrigatório.", 400)
         return valor.strip()
 
     @staticmethod
     def listar_anotacoes(id_materias, id_usuario):
-        if id_materias is not None:
-            if not id_materias.isdecimal() or int(id_materias) <= 0:
-                raise ApiError("id_materias deve ser inteiro positivo.", 400)
-            id_materias = int(id_materias)
+        id_materias = id_filtro(id_materias)
         return AnotacoesRepository.listar(id_usuario, id_materias)
 
     @staticmethod
@@ -52,22 +51,17 @@ class AnotacoesService:
 
     @staticmethod
     def atualizar_anotacao(id_anotacoes, dados, id_usuario):
-        atual = AnotacoesService.buscar_anotacao(id_anotacoes, id_usuario)
-        if not isinstance(dados, dict) or not dados:
-            raise ApiError("Informe campos para atualizar.", 400)
-        texto = AnotacoesService._texto(dados["texto"]) if "texto" in dados else atual["texto"]
-        situacao = AnotacoesService._situacao(dados["situacao"]) if "situacao" in dados else atual["situacao"]
-        id_materias = (AnotacoesService._id_materia(dados["id_materias"])
-                       if "id_materias" in dados else atual["id_materias"])
-        if not AnotacoesRepository.verificar_materia_existe(id_materias, id_usuario):
-            raise ApiError("Matéria não encontrada para este usuário.", 404)
-        if AnotacoesRepository.vinculada_a_pomodoro_de_outra_materia(
-            id_anotacoes, id_materias, id_usuario
-        ):
-            raise ApiError("Não é possível mover uma anotação vinculada a Pomodoro de outra matéria.", 409)
-        atualizada = AnotacoesRepository.atualizar(
-            id_anotacoes, texto, situacao, id_materias, id_usuario
-        )
+        if not isinstance(dados, dict):
+            raise ApiError("Envie um objeto JSON.", 400)
+        validadores = {
+            "texto": AnotacoesService._texto,
+            "situacao": AnotacoesService._situacao,
+            "id_materias": AnotacoesService._id_materia,
+        }
+        campos = {campo: validar(dados[campo]) for campo, validar in validadores.items() if campo in dados}
+        if not campos:
+            raise ApiError("Informe texto, situacao ou id_materias para atualizar.", 400)
+        atualizada = AnotacoesRepository.atualizar(id_anotacoes, campos, id_usuario)
         if atualizada is None:
             raise ApiError("Anotação não encontrada para este usuário.", 404)
         return atualizada

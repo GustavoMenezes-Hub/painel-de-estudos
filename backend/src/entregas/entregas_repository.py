@@ -10,15 +10,15 @@ def materia_do_usuario(id_materia, id_usuario):
         )
         return cursor.fetchone() is not None
 
-def find_all(id_usuario):
+def find_all(id_usuario, id_materias=None):
     with db_cursor() as cursor:
         cursor.execute(
             f"SELECT {_CAMPOS} "
             "FROM entregas e "
             "JOIN materias m ON m.id_materias = e.id_materias "
-            "WHERE m.id_usuarios = %s "
+            "WHERE m.id_usuarios = %s AND (%s IS NULL OR e.id_materias = %s) "
             "ORDER BY e.id_entregas",
-            (id_usuario,),
+            (id_usuario, id_materias, id_materias),
         )
         return [registro_json(linha) for linha in cursor.fetchall()]
 
@@ -33,13 +33,14 @@ def find_by_id(id_entrega, id_usuario):
         )
         return registro_json(cursor.fetchone())
 
-def create(titulo, data_vencimento, situacao, id_materia):
+def create(titulo, data_vencimento, situacao, id_materia, id_usuario):
     with db_cursor() as cursor:
         cursor.execute(
             """INSERT INTO entregas (titulo, data_vencimento, situacao, id_materias)
-               VALUES (%s, %s, %s, %s)
+               SELECT %s, %s, %s, m.id_materias FROM materias m
+               WHERE m.id_materias = %s AND m.id_usuarios = %s
                RETURNING id_entregas, titulo, data_vencimento, data_criacao, situacao, id_materias""",
-            (titulo, data_vencimento, situacao, id_materia),
+            (titulo, data_vencimento, situacao, id_materia, id_usuario),
         )
         return registro_json(cursor.fetchone())
 

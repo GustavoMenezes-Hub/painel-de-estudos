@@ -2,7 +2,7 @@ from flask import g, jsonify, request
 from . import usuarios_service as service
 
 def get_all():
-    return jsonify(service.list_all())
+    return jsonify(service.list_all(g.id_usuario))
 
 def get_one(id_usuario):
     return jsonify(service.get_one(id_usuario, g.id_usuario))

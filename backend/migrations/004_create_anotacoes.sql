@@ -1,4 +1,4 @@
-CREATE TABLE anotacoes (
+CREATE TABLE IF NOT EXISTS anotacoes (
     id_anotacoes INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     texto TEXT NOT NULL,
     situacao VARCHAR(30) NOT NULL DEFAULT 'pendente_revisao'

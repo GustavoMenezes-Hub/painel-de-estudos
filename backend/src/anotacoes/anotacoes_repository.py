@@ -1,3 +1,4 @@
+from src.api_errors import ApiError
 from src.db_helpers import db_cursor
 
 class AnotacoesRepository:
@@ -43,19 +44,6 @@ class AnotacoesRepository:
             return cursor.fetchone() is not None
 
     @staticmethod
-    def vinculada_a_pomodoro_de_outra_materia(id_anotacoes, id_materias, id_usuario):
-        with db_cursor() as cursor:
-            cursor.execute(
-                "SELECT 1 FROM pomodoro p "
-                "JOIN anotacoes a ON a.id_anotacoes = p.id_anotacoes "
-                "JOIN materias m ON m.id_materias = a.id_materias "
-                "WHERE a.id_anotacoes = %s AND p.id_materias <> %s "
-                "AND m.id_usuarios = %s LIMIT 1",
-                (id_anotacoes, id_materias, id_usuario),
-            )
-            return cursor.fetchone() is not None
-
-    @staticmethod
     def criar(texto, situacao, id_materias, id_usuario):
         with db_cursor() as cursor:
             cursor.execute(
@@ -67,21 +55,30 @@ class AnotacoesRepository:
             return cursor.fetchone()
 
     @staticmethod
-    def atualizar(id_anotacoes, texto, situacao, id_materias, id_usuario):
+    def atualizar(id_anotacoes, campos, id_usuario):
         with db_cursor() as cursor:
             cursor.execute(
-                "UPDATE anotacoes a "
-                "SET texto = %s, situacao = %s, id_materias = %s "
-                "WHERE a.id_anotacoes = %s "
-                "AND EXISTS (SELECT 1 FROM materias origem "
-                "WHERE origem.id_materias = a.id_materias AND origem.id_usuarios = %s) "
-                "AND EXISTS (SELECT 1 FROM materias destino "
-                "WHERE destino.id_materias = %s AND destino.id_usuarios = %s) "
-                "AND NOT EXISTS (SELECT 1 FROM pomodoro p "
-                "WHERE p.id_anotacoes = a.id_anotacoes AND p.id_materias <> %s) "
-                "RETURNING a.*",
-                (texto, situacao, id_materias, id_anotacoes, id_usuario,
-                 id_materias, id_usuario, id_materias),
+                "SELECT a.* FROM anotacoes a JOIN materias m USING (id_materias) "
+                "WHERE a.id_anotacoes = %s AND m.id_usuarios = %s FOR UPDATE OF a",
+                (id_anotacoes, id_usuario),
+            )
+            atual = cursor.fetchone()
+            if atual is None:
+                return None
+            id_materias = campos.get("id_materias", atual["id_materias"])
+            if id_materias != atual["id_materias"]:
+                cursor.execute(
+                    "SELECT 1 FROM pomodoro WHERE id_anotacoes = %s AND id_materias <> %s LIMIT 1",
+                    (id_anotacoes, id_materias),
+                )
+                if cursor.fetchone() is not None:
+                    raise ApiError("Anotação vinculada a Pomodoro de outra matéria.", 409)
+            cursor.execute(
+                "UPDATE anotacoes a SET texto = %s, situacao = %s, id_materias = m.id_materias "
+                "FROM materias m WHERE a.id_anotacoes = %s "
+                "AND m.id_materias = %s AND m.id_usuarios = %s RETURNING a.*",
+                (campos.get("texto", atual["texto"]), campos.get("situacao", atual["situacao"]),
+                 id_anotacoes, id_materias, id_usuario),
             )
             return cursor.fetchone()
 

@@ -25,4 +25,11 @@ Durante as aulas, pode guardar anotações sobre assuntos que deseja revisar. Ma
 
 ## Tecnologias
 
-O backend utiliza **Python**, **Flask** e **PostgreSQL**, com uma **API REST** responsável pela autenticação e pelo gerenciamento dos dados. O projeto está em desenvolvimento, com a integração às interfaces de uso prevista para as próximas etapas.
+O backend utiliza **Python**, **Flask** e **PostgreSQL**, com uma **API REST** responsável pela autenticação e pelo gerenciamento dos dados. O contrato da API e os testes de integração acompanham a segunda entrega.
+
+
+## Executar e verificar a entrega
+
+O [guia de instalação, autenticação e testes](docs/guia_instalacao.md) inclui os comandos para iniciar o servidor e executar a suíte com PostgreSQL isolado. Com a API em execução, o contrato completo está disponível em [Swagger](http://127.0.0.1:3000/apidocs/) e [JSON](http://127.0.0.1:3000/apispec_1.json).
+
+A estrutura e a evolução do banco de dados estão registradas nos scripts de [migrations](backend/migrations/) e na [carga de demonstração](backend/seed.sql).

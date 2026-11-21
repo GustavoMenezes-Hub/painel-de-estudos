@@ -1,8 +1,8 @@
 from src.db_helpers import db_cursor, registro_json
 
-def find_all():
+def find_all(id_usuario):
     with db_cursor() as cursor:
-        cursor.execute("SELECT id_usuarios, nome FROM usuarios ORDER BY id_usuarios")
+        cursor.execute("SELECT id_usuarios, nome FROM usuarios WHERE id_usuarios = %s", (id_usuario,))
         return [registro_json(linha) for linha in cursor.fetchall()]
 
 def find_by_id(id_usuario):
@@ -13,10 +13,16 @@ def find_by_id(id_usuario):
         )
         return registro_json(cursor.fetchone())
 
+def versao_token(id_usuario):
+    with db_cursor() as cursor:
+        cursor.execute("SELECT versao_token FROM usuarios WHERE id_usuarios = %s", (id_usuario,))
+        linha = cursor.fetchone()
+        return linha["versao_token"] if linha else None
+
 def find_by_email(email):
     with db_cursor() as cursor:
         cursor.execute(
-            "SELECT id_usuarios, nome, email, senha_hash FROM usuarios WHERE lower(email) = %s",
+            "SELECT id_usuarios, nome, email, senha_hash, versao_token FROM usuarios WHERE lower(email) = %s",
             (email,),
         )
         return registro_json(cursor.fetchone())
@@ -36,6 +42,8 @@ def update(id_usuario, campos):
     if not campos or not set(campos).issubset(permitidos):
         raise ValueError("Campos inválidos para atualização")
     definicoes = ", ".join(f"{coluna} = %s" for coluna in campos)
+    if "senha_hash" in campos:
+        definicoes += ", versao_token = versao_token + 1"
     parametros = list(campos.values()) + [id_usuario]
     with db_cursor() as cursor:
         cursor.execute(

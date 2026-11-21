@@ -4,6 +4,9 @@ from . import entregas_service as service
 def get_all():
     return jsonify(service.list_all(g.id_usuario))
 
+def por_materia(id_materias):
+    return jsonify(service.listar_por_materia(id_materias, g.id_usuario))
+
 def get_one(id_entrega):
     return jsonify(service.get_one(id_entrega, g.id_usuario))
 

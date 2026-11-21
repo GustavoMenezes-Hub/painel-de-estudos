@@ -1,4 +1,4 @@
-CREATE TABLE entregas (
+CREATE TABLE IF NOT EXISTS entregas (
     id_entregas INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     titulo VARCHAR(100) NOT NULL,
     data_vencimento DATE NOT NULL,

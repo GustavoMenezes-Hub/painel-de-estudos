@@ -1,3 +1,4 @@
+from src.api_errors import ApiError
 from src.db_helpers import db_cursor
 
 class PomodoroRepository:
@@ -34,62 +35,57 @@ class PomodoroRepository:
             return cursor.fetchone()
 
     @staticmethod
-    def verificar_materia_existe(id_materias, id_usuario):
-        with db_cursor() as cursor:
-            cursor.execute(
-                "SELECT 1 FROM materias WHERE id_materias = %s AND id_usuarios = %s",
-                (id_materias, id_usuario),
-            )
-            return cursor.fetchone() is not None
-
-    @staticmethod
-    def verificar_anotacao_existe(id_anotacoes, id_materias, id_usuario):
+    def _bloquear_anotacao(cursor, id_anotacoes, id_materias, id_usuario):
         if id_anotacoes is None:
-            return True
-        with db_cursor() as cursor:
-            cursor.execute(
-                "SELECT 1 FROM anotacoes a "
-                "JOIN materias m ON m.id_materias = a.id_materias "
-                "WHERE a.id_anotacoes = %s AND a.id_materias = %s "
-                "AND m.id_usuarios = %s",
-                (id_anotacoes, id_materias, id_usuario),
-            )
-            return cursor.fetchone() is not None
+            return
+        # Serializa a vinculação com a mudança de matéria feita pelo CRUD de anotações.
+        cursor.execute(
+            "SELECT 1 FROM anotacoes a JOIN materias m USING (id_materias) "
+            "WHERE a.id_anotacoes = %s AND a.id_materias = %s "
+            "AND m.id_usuarios = %s FOR SHARE OF a",
+            (id_anotacoes, id_materias, id_usuario),
+        )
+        if cursor.fetchone() is None:
+            raise ApiError("Anotação não encontrada nessa matéria para este usuário.", 404)
 
     @staticmethod
     def criar(inicio, duracao_foco_min, duracao_pausa_min, tipo, concluida, id_materias, id_anotacoes, id_usuario):
         with db_cursor() as cursor:
+            PomodoroRepository._bloquear_anotacao(cursor, id_anotacoes, id_materias, id_usuario)
             cursor.execute(
                 "INSERT INTO pomodoro "
                 "(inicio, duracao_foco_min, duracao_pausa_min, tipo, concluida, id_materias, id_anotacoes) "
                 "SELECT %s, %s, %s, %s, %s, m.id_materias, %s FROM materias m "
-                "WHERE m.id_materias = %s AND m.id_usuarios = %s "
-                "AND (%s IS NULL OR EXISTS (SELECT 1 FROM anotacoes a "
-                "WHERE a.id_anotacoes = %s AND a.id_materias = m.id_materias)) "
-                "RETURNING *",
+                "WHERE m.id_materias = %s AND m.id_usuarios = %s RETURNING *",
                 (inicio, duracao_foco_min, duracao_pausa_min, tipo, concluida,
-                 id_anotacoes, id_materias, id_usuario, id_anotacoes, id_anotacoes),
+                 id_anotacoes, id_materias, id_usuario),
             )
             return cursor.fetchone()
 
     @staticmethod
-    def atualizar(id_pomodoro, inicio, duracao_foco_min, duracao_pausa_min, tipo, concluida, id_materias, id_anotacoes, id_usuario):
+    def atualizar(id_pomodoro, campos, id_usuario):
         with db_cursor() as cursor:
             cursor.execute(
-                "UPDATE pomodoro p "
-                "SET inicio = %s, duracao_foco_min = %s, duracao_pausa_min = %s, "
-                "tipo = %s, concluida = %s, id_materias = %s, id_anotacoes = %s "
-                "WHERE p.id_pomodoro = %s "
-                "AND EXISTS (SELECT 1 FROM materias origem "
-                "WHERE origem.id_materias = p.id_materias AND origem.id_usuarios = %s) "
-                "AND EXISTS (SELECT 1 FROM materias destino "
-                "WHERE destino.id_materias = %s AND destino.id_usuarios = %s) "
-                "AND (%s IS NULL OR EXISTS (SELECT 1 FROM anotacoes a "
-                "WHERE a.id_anotacoes = %s AND a.id_materias = %s)) "
-                "RETURNING p.*",
-                (inicio, duracao_foco_min, duracao_pausa_min, tipo, concluida,
-                 id_materias, id_anotacoes, id_pomodoro, id_usuario,
-                 id_materias, id_usuario, id_anotacoes, id_anotacoes, id_materias),
+                "SELECT p.* FROM pomodoro p JOIN materias m USING (id_materias) "
+                "WHERE p.id_pomodoro = %s AND m.id_usuarios = %s FOR UPDATE OF p",
+                (id_pomodoro, id_usuario),
+            )
+            atual = cursor.fetchone()
+            if atual is None:
+                return None
+            atual.update(campos)
+            PomodoroRepository._bloquear_anotacao(
+                cursor, atual["id_anotacoes"], atual["id_materias"], id_usuario
+            )
+            cursor.execute(
+                "UPDATE pomodoro p SET inicio = %s, duracao_foco_min = %s, "
+                "duracao_pausa_min = %s, tipo = %s, concluida = %s, "
+                "id_materias = m.id_materias, id_anotacoes = %s "
+                "FROM materias m WHERE p.id_pomodoro = %s "
+                "AND m.id_materias = %s AND m.id_usuarios = %s RETURNING p.*",
+                (atual["inicio"], atual["duracao_foco_min"], atual["duracao_pausa_min"],
+                 atual["tipo"], atual["concluida"], atual["id_anotacoes"],
+                 id_pomodoro, atual["id_materias"], id_usuario),
             )
             return cursor.fetchone()
 

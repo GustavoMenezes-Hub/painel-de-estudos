@@ -1,11 +1,13 @@
 from werkzeug.security import generate_password_hash
 from src.api_errors import ApiError
+from src.validacao import MAX_CARACTERES_SENHA, validar_texto_postgres
 from . import usuarios_repository as repository
 
 def _texto(dados, campo, maximo=100):
     valor = dados.get(campo)
     if not isinstance(valor, str) or not valor.strip():
         raise ApiError(f"{campo} deve ser um texto não vazio")
+    validar_texto_postgres(valor, campo)
     valor = valor.strip()
     if len(valor) > maximo:
         raise ApiError(f"{campo} não pode ultrapassar {maximo} caracteres")
@@ -15,16 +17,20 @@ def _senha(dados):
     senha = dados.get("senha")
     if not isinstance(senha, str) or len(senha) < 8:
         raise ApiError("senha deve ter pelo menos 8 caracteres")
+    validar_texto_postgres(senha, "senha", maximo=MAX_CARACTERES_SENHA)
     return senha
 
 def _email(dados):
     email = _texto(dados, "email").lower()
-    if "@" not in email or "." not in email.split("@")[-1] or " " in email:
+    local, separador, dominio = email.partition("@")
+    if (not separador or not local or "@" in dominio or "." not in dominio
+            or not all(dominio.split(".")) or any(c.isspace() for c in email)
+            or len(email) > 100):
         raise ApiError("email inválido")
     return email
 
-def list_all():
-    return repository.find_all()
+def list_all(id_usuario):
+    return repository.find_all(id_usuario)
 
 def get_one(id_usuario, id_logado):
     if id_usuario != id_logado:

@@ -1,18 +1,16 @@
-import os
-import psycopg2
-from dotenv import load_dotenv
+from contextlib import closing
+from pathlib import Path
 
-load_dotenv()
+from src.db import get_connection
 
-conexao = psycopg2.connect(os.environ["DATABASE_URL"])
-cursor = conexao.cursor()
 
-with open("seed.sql", "r", encoding="utf-8") as f:
-    sql = f.read()
+def popular(conexao):
+    """Carrega a conta fictícia e seus exemplos a partir de seed.sql."""
+    with conexao, conexao.cursor() as cursor:
+        cursor.execute(Path(__file__).with_suffix(".sql").read_text(encoding="utf-8"))
 
-cursor.execute(sql)
 
-conexao.commit()
-cursor.close()
-conexao.close()
-print("seed concluído.")
+if __name__ == "__main__":
+    with closing(get_connection()) as conexao:
+        popular(conexao)
+    print("Carga de demonstração concluída.")

@@ -10,8 +10,8 @@ def _assinador():
         salt="painel-estudos-autenticacao-v1",
     )
 
-def gerar_token(id_usuario):
-    return _assinador().dumps({"id_usuarios": id_usuario})
+def gerar_token(id_usuario, versao):
+    return _assinador().dumps({"id_usuarios": id_usuario, "versao": versao})
 
 def verificar_autenticacao():
     autorizacao = request.headers.get("Authorization", "")
@@ -25,7 +25,8 @@ def verificar_autenticacao():
             raise ValueError("ID inválido")
     except (BadSignature, SignatureExpired, ValueError, AttributeError, TypeError):
         return jsonify({"erro": "Token inválido ou expirado"}), 401
-    if usuarios_repository.find_by_id(id_usuario) is None:
-        return jsonify({"erro": "Usuário do token não existe"}), 401
+    versao = usuarios_repository.versao_token(id_usuario)
+    if versao is None or versao != conteudo.get("versao"):
+        return jsonify({"erro": "Token inválido ou expirado"}), 401
     g.id_usuario = id_usuario
     return None

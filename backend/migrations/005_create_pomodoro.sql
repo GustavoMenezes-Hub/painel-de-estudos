@@ -1,4 +1,4 @@
-CREATE TABLE pomodoro (
+CREATE TABLE IF NOT EXISTS pomodoro (
     id_pomodoro INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     inicio TIMESTAMPTZ NOT NULL,
     duracao_foco_min INTEGER NOT NULL CHECK (duracao_foco_min > 0),

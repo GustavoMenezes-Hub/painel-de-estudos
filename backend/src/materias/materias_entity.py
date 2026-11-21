@@ -1,3 +1,5 @@
+from src.db_helpers import registro_json
+
 class Materia:
     def __init__(self, id_materias, nome, descricao, id_usuarios, data_criacao=None):
         self.id_materias = id_materias
@@ -17,10 +19,10 @@ class Materia:
         )
 
     def to_dict(self):
-        return {
+        return registro_json({
             "id_materias": self.id_materias,
             "nome": self.nome,
             "descricao": self.descricao,
             "id_usuarios": self.id_usuarios,
             "data_criacao": self.data_criacao,
-        }
+        })

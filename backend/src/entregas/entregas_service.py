@@ -1,11 +1,13 @@
 from datetime import date
 from src.api_errors import ApiError
+from src.validacao import id_postgres, validar_texto_postgres
 from . import entregas_repository as repository
 
 def _titulo(dados):
     titulo = dados.get("titulo")
     if not isinstance(titulo, str) or not titulo.strip() or len(titulo.strip()) > 100:
         raise ApiError("titulo deve ter entre 1 e 100 caracteres")
+    validar_texto_postgres(titulo, "titulo")
     return titulo.strip()
 
 def _data(dados):
@@ -31,7 +33,7 @@ def _situacao(dados):
 
 def _id_materia(dados, id_usuario):
     numero = dados.get("id_materias")
-    if type(numero) is not int or numero <= 0:
+    if not id_postgres(numero):
         raise ApiError("id_materias deve ser um número inteiro positivo")
     if not repository.materia_do_usuario(numero, id_usuario):
         raise ApiError("Matéria não encontrada para este usuário", 404)
@@ -39,6 +41,11 @@ def _id_materia(dados, id_usuario):
 
 def list_all(id_usuario):
     return repository.find_all(id_usuario)
+
+def listar_por_materia(id_materias, id_usuario):
+    if not repository.materia_do_usuario(id_materias, id_usuario):
+        raise ApiError("Matéria não encontrada para este usuário", 404)
+    return repository.find_all(id_usuario, id_materias)
 
 def get_one(id_entrega, id_usuario):
     entrega = repository.find_by_id(id_entrega, id_usuario)
@@ -53,7 +60,10 @@ def cadastrar(dados, id_usuario):
     data_vencimento = _data(dados)
     situacao = _situacao({"situacao": dados.get("situacao", "Pendente")})
     id_materia = _id_materia(dados, id_usuario)
-    return repository.create(titulo, data_vencimento, situacao, id_materia)
+    entrega = repository.create(titulo, data_vencimento, situacao, id_materia, id_usuario)
+    if entrega is None:
+        raise ApiError("Matéria não encontrada para este usuário", 404)
+    return entrega
 
 def atualizar(id_entrega, id_usuario, dados):
     get_one(id_entrega, id_usuario)

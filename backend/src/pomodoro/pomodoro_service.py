@@ -1,6 +1,13 @@
-from datetime import datetime
+import re
+from datetime import datetime, timezone
 from src.api_errors import ApiError
+from src.validacao import MAX_INTEIRO_POSTGRES, id_filtro, id_postgres, validar_texto_postgres
 from src.pomodoro.pomodoro_repository import PomodoroRepository
+
+HORA_COM_FUSO = re.compile(
+    r"[T ]\d{2}(?::?\d{2}(?::?\d{2})?)?(?:[.,]\d+)?"
+    r"(?:Z|[+-](?:[01]\d|2[0-3])(?::?[0-5]\d)?)\Z", re.ASCII
+)
 
 class PomodoroService:
 
@@ -8,30 +15,31 @@ class PomodoroService:
     def _id(valor, campo, opcional=False):
         if opcional and valor is None:
             return None
-        if type(valor) is not int or valor <= 0:
+        if not id_postgres(valor):
             raise ApiError(f"{campo} deve ser inteiro positivo.", 400)
         return valor
 
     @staticmethod
     def _duracao(valor, campo, minimo):
-        if type(valor) is not int or valor < minimo:
-            raise ApiError(f"{campo} deve ser inteiro maior ou igual a {minimo}.", 400)
+        if type(valor) is not int or not minimo <= valor <= MAX_INTEIRO_POSTGRES:
+            raise ApiError(f"{campo} deve ser inteiro entre {minimo} e {MAX_INTEIRO_POSTGRES}.", 400)
         return valor
 
     @staticmethod
     def _inicio(valor):
-        if not isinstance(valor, str):
-            raise ApiError("O campo 'inicio' deve ser data e hora ISO 8601.", 400)
+        mensagem = "O campo 'inicio' deve ser uma data e hora ISO 8601 com fuso explícito (Z ou deslocamento)."
+        if not isinstance(valor, str) or not HORA_COM_FUSO.search(valor):
+            raise ApiError(mensagem)
         try:
-            inicio = datetime.fromisoformat(valor)
-        except ValueError:
-            raise ApiError("O campo 'inicio' deve ser data e hora ISO 8601.", 400)
-        return valor
+            return datetime.fromisoformat(valor).astimezone(timezone.utc)
+        except (ValueError, OverflowError):
+            raise ApiError(mensagem) from None
 
     @staticmethod
     def _validar_tipo(valor):
         if valor is not None and (not isinstance(valor, str) or len(valor) > 50):
             raise ApiError("O campo 'tipo' deve ser texto de até 50 caracteres.", 400)
+        validar_texto_postgres(valor, "tipo")
         return valor
 
     @staticmethod
@@ -41,18 +49,8 @@ class PomodoroService:
         return valor
 
     @staticmethod
-    def _validar_relacoes(id_materias, id_anotacoes, id_usuario):
-        if not PomodoroRepository.verificar_materia_existe(id_materias, id_usuario):
-            raise ApiError("Matéria não encontrada para este usuário.", 404)
-        if not PomodoroRepository.verificar_anotacao_existe(id_anotacoes, id_materias, id_usuario):
-            raise ApiError("Anotação não encontrada nessa matéria para este usuário.", 404)
-
-    @staticmethod
     def listar_pomodoros(id_materias, id_usuario):
-        if id_materias is not None:
-            if not id_materias.isdecimal() or int(id_materias) <= 0:
-                raise ApiError("id_materias deve ser inteiro positivo.", 400)
-            id_materias = int(id_materias)
+        id_materias = id_filtro(id_materias)
         return PomodoroRepository.listar(id_usuario, id_materias)
 
     @staticmethod
@@ -73,7 +71,6 @@ class PomodoroService:
         concluida = PomodoroService._validar_concluida(dados.get("concluida", False))
         id_materias = PomodoroService._id(dados.get("id_materias"), "id_materias")
         id_anotacoes = PomodoroService._id(dados.get("id_anotacoes"), "id_anotacoes", opcional=True)
-        PomodoroService._validar_relacoes(id_materias, id_anotacoes, id_usuario)
         novo = PomodoroRepository.criar(inicio, duracao_foco_min, duracao_pausa_min,
                                         tipo, concluida, id_materias, id_anotacoes, id_usuario)
         if novo is None:
@@ -82,24 +79,21 @@ class PomodoroService:
 
     @staticmethod
     def atualizar_pomodoro(id_pomodoro, dados, id_usuario):
-        atual = PomodoroService.buscar_pomodoro(id_pomodoro, id_usuario)
-        if not isinstance(dados, dict) or not dados:
-            raise ApiError("Informe campos para atualizar.", 400)
-        inicio = (PomodoroService._inicio(dados["inicio"])
-                  if "inicio" in dados else atual["inicio"])
-        duracao_foco_min = PomodoroService._duracao(
-            dados.get("duracao_foco_min", atual["duracao_foco_min"]), "duracao_foco_min", 1)
-        duracao_pausa_min = PomodoroService._duracao(
-            dados.get("duracao_pausa_min", atual["duracao_pausa_min"]), "duracao_pausa_min", 0)
-        tipo = PomodoroService._validar_tipo(dados.get("tipo", atual["tipo"]))
-        concluida = PomodoroService._validar_concluida(dados.get("concluida", atual["concluida"]))
-        id_materias = PomodoroService._id(dados.get("id_materias", atual["id_materias"]), "id_materias")
-        id_anotacoes = PomodoroService._id(dados.get("id_anotacoes", atual["id_anotacoes"]),
-                                           "id_anotacoes", opcional=True)
-        PomodoroService._validar_relacoes(id_materias, id_anotacoes, id_usuario)
-        atualizado = PomodoroRepository.atualizar(
-            id_pomodoro, inicio, duracao_foco_min, duracao_pausa_min,
-            tipo, concluida, id_materias, id_anotacoes, id_usuario)
+        if not isinstance(dados, dict):
+            raise ApiError("Envie um objeto JSON.", 400)
+        validadores = {
+            "inicio": PomodoroService._inicio,
+            "duracao_foco_min": lambda valor: PomodoroService._duracao(valor, "duracao_foco_min", 1),
+            "duracao_pausa_min": lambda valor: PomodoroService._duracao(valor, "duracao_pausa_min", 0),
+            "tipo": PomodoroService._validar_tipo,
+            "concluida": PomodoroService._validar_concluida,
+            "id_materias": lambda valor: PomodoroService._id(valor, "id_materias"),
+            "id_anotacoes": lambda valor: PomodoroService._id(valor, "id_anotacoes", opcional=True),
+        }
+        campos = {campo: validar(dados[campo]) for campo, validar in validadores.items() if campo in dados}
+        if not campos:
+            raise ApiError("Informe pelo menos um campo de Pomodoro para atualizar.", 400)
+        atualizado = PomodoroRepository.atualizar(id_pomodoro, campos, id_usuario)
         if atualizado is None:
             raise ApiError("Registro de Pomodoro não encontrado para este usuário.", 404)
         return atualizado
