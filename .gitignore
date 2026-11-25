@@ -58,6 +58,12 @@ __pycache__/
 .coverage.*
 htmlcov/
 
+# Frontend React/Vite
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+.pnpm-store/
+
 # Arquivos temporários e logs
 tmp/
 temp/

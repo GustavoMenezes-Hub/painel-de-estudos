@@ -1,0 +1,2 @@
+import { Link } from 'react-router-dom';
+export function WelcomePage(){return <main className="welcome-slide" aria-label="Página inicial do Painel de Estudos"><div className="welcome-slide__canvas"><img src="/images/welcome-slide.jpg" alt="Painel de Estudos - uma plataforma que vai alavancar os seus estudos"/><Link className="welcome-hit welcome-hit--login" to="/entrar" aria-label="Entrar no Painel de Estudos"/><Link className="welcome-hit welcome-hit--register" to="/cadastro" aria-label="Cadastrar-se no Painel de Estudos"/></div></main>}

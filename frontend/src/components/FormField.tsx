@@ -1,0 +1,4 @@
+import { Eye,EyeOff } from 'lucide-react';
+import { useState,type InputHTMLAttributes } from 'react';
+interface Props extends InputHTMLAttributes<HTMLInputElement>{label:string;error?:string;hint?:string}
+export function FormField({label,error,hint,type,...props}:Props){const [show,setShow]=useState(false);const password=type==='password';return <div className="field"><label htmlFor={props.id}>{label}</label><div className="input-wrap"><input {...props} type={password?(show?'text':'password'):type} aria-invalid={!!error} aria-describedby={error?`${props.id}-error`:undefined}/>{password&&<button className="input-action" type="button" onClick={()=>setShow(v=>!v)} aria-label={show?'Ocultar senha':'Mostrar senha'}>{show?<EyeOff size={19}/>:<Eye size={19}/>}</button>}</div>{hint&&!error&&<small className="field__hint">{hint}</small>}{error&&<small className="field__error" id={`${props.id}-error`}>{error}</small>}</div>}
