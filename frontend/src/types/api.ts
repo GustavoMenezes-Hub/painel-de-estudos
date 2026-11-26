@@ -7,3 +7,14 @@ export interface Materia {
   nome: string;
   descricao: string | null;
 }
+
+export interface DadosEntrega {
+  titulo: string;
+  id_materias: number;
+  data_vencimento: string;
+  situacao: 'pendente' | 'realizado';
+}
+
+export interface Entrega extends DadosEntrega {
+  id_entregas: number;
+}

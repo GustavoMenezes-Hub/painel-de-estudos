@@ -1,4 +1,5 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
+import { EntregasSection } from './components/EntregasSection';
 import { AppLayout } from './layouts/AppLayout';
 import { LoginPage } from './pages/LoginPage';
 import { MateriaDetalhePage } from './pages/MateriaDetalhePage';
@@ -20,8 +21,9 @@ export default function App() {
         <Route element={<AppLayout />}>
           <Route path="/materias" element={<MateriasPage />} />
           <Route path="/materias/:idMateria" element={<MateriaDetalhePage />} />
+          <Route path="/entregas" element={<EntregasSection />} />
 
-          {['painel', 'entregas', 'anotacoes', 'pomodoro'].map((page) => (
+          {['painel', 'anotacoes', 'pomodoro'].map((page) => (
             <Route
               key={page}
               path={`/${page}`}

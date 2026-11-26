@@ -71,21 +71,3 @@
   display: grid;
   gap: 16px;
 }
-
-.materias-page__details > p {
-  margin: 0;
-}
-
-.materias-page__deliveries {
-  margin: 0;
-  padding-left: 20px;
-}
-
-.materias-page__deliveries li + li {
-  margin-top: 14px;
-}
-
-.materias-page__deliveries h3 {
-  margin: 0;
-  font-size: 1rem;
-}

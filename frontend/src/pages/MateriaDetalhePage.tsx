@@ -1,18 +1,12 @@
 import { ArrowLeft, Pencil, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { EntregasSection } from '../components/EntregasSection';
 import { Feedback } from '../components/Feedback';
 import { MateriaForm } from '../components/MateriaForm';
 import { api, ApiError } from '../services/api';
 import type { Materia } from '../types/api';
 import './MateriasPage.css';
-
-interface Entrega {
-  id_entregas: number;
-  titulo: string;
-  data_vencimento: string;
-  situacao: 'pendente' | 'realizado';
-}
 
 type Consulta<T> =
   | { status: 'carregando' }
@@ -40,7 +34,6 @@ function MateriaDetalhe({ id }: { id: number }) {
   const url = `/api/materias/${id}`;
   const requisicoes = useRef<AbortController | null>(null);
   const [materia, setMateria] = useState<Consulta<Materia>>({ status: 'carregando' });
-  const [entregas, setEntregas] = useState<Consulta<Entrega[]>>({ status: 'carregando' });
   const [editando, setEditando] = useState(false);
   const [excluindo, setExcluindo] = useState(false);
   const [erroExclusao, setErroExclusao] = useState('');
@@ -63,17 +56,6 @@ function MateriaDetalhe({ id }: { id: number }) {
           const mensagem = erro instanceof Error ? erro.message : 'Não foi possível carregar a matéria.';
           setMateria({ status: 'erro', mensagem });
         }
-      },
-    );
-
-    void api<Entrega[]>(`${url}/entregas`, { signal }).then(
-      (dados) => {
-        if (!signal.aborted) setEntregas({ status: 'pronto', dados });
-      },
-      (erro: unknown) => {
-        if (signal.aborted) return;
-        const mensagem = erro instanceof Error ? `Falha ao carregar as entregas. ${erro.message}` : 'Falha ao carregar as entregas.';
-        setEntregas({ status: 'erro', mensagem });
       },
     );
 
@@ -144,27 +126,7 @@ function MateriaDetalhe({ id }: { id: number }) {
         />
       )}
 
-      <section className="materias-page__item materias-page__details" aria-labelledby="materia-entregas">
-        <h2 id="materia-entregas">Entregas vinculadas</h2>
-        {entregas.status === 'carregando' && <p role="status">Carregando entregas...</p>}
-        {entregas.status === 'erro' && <Feedback>{entregas.mensagem}</Feedback>}
-        {entregas.status === 'pronto' && (
-          entregas.dados.length === 0 ? <p>Nenhuma entrega vinculada.</p> : (
-            <ul className="materias-page__deliveries">
-              {entregas.dados.map((entrega) => (
-                <li key={entrega.id_entregas}>
-                  <h3>{entrega.titulo}</h3>
-                  <p>
-                    Vencimento em{' '}
-                    <time dateTime={entrega.data_vencimento}>{entrega.data_vencimento.split('-').reverse().join('/')}</time>
-                    {' · '}{entrega.situacao === 'realizado' ? 'Realizada' : 'Pendente'}
-                  </p>
-                </li>
-              ))}
-            </ul>
-          )
-        )}
-      </section>
+      <EntregasSection materia={materia.dados} disabled={excluindo} />
     </>
   );
 }
