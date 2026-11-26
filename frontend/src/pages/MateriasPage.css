@@ -1,0 +1,91 @@
+.materias-page {
+  display: grid;
+  gap: 20px;
+}
+
+.materias-page__form,
+.materias-page__item {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background: #fff;
+}
+
+.materias-page__form {
+  display: grid;
+  gap: 16px;
+  width: min(100%, 640px);
+}
+
+.materias-page__form textarea {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ccd9d5;
+  border-radius: 9px;
+  font: inherit;
+  color: #20363b;
+  resize: vertical;
+}
+
+.materias-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.materias-page__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 14px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.materias-page__item {
+  overflow-wrap: anywhere;
+}
+
+.materias-page__item h2 {
+  margin: 0;
+  color: var(--brand-deep);
+  font-size: 1.125rem;
+}
+
+.materias-page__item p {
+  margin: 8px 0 0;
+  white-space: pre-wrap;
+}
+
+.materias-page__detail-link {
+  margin-top: 12px;
+  text-decoration: none;
+}
+
+.materias-page__back {
+  justify-self: start;
+  color: var(--brand-deep);
+}
+
+.materias-page__details {
+  display: grid;
+  gap: 16px;
+}
+
+.materias-page__details > p {
+  margin: 0;
+}
+
+.materias-page__deliveries {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.materias-page__deliveries li + li {
+  margin-top: 14px;
+}
+
+.materias-page__deliveries h3 {
+  margin: 0;
+  font-size: 1rem;
+}
