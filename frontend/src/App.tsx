@@ -4,6 +4,7 @@ import { AppLayout } from './layouts/AppLayout';
 import { LoginPage } from './pages/LoginPage';
 import { MateriaDetalhePage } from './pages/MateriaDetalhePage';
 import { MateriasPage } from './pages/MateriasPage';
+import { PainelPage } from './pages/PainelPage';
 import { PlaceholderPage } from './pages/PlaceholderPage';
 import { ProfilePage } from './pages/ProfilePage';
 import { RegisterPage } from './pages/RegisterPage';
@@ -19,11 +20,12 @@ export default function App() {
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>
+          <Route path="/painel" element={<PainelPage />} />
           <Route path="/materias" element={<MateriasPage />} />
           <Route path="/materias/:idMateria" element={<MateriaDetalhePage />} />
           <Route path="/entregas" element={<EntregasSection />} />
 
-          {['painel', 'anotacoes', 'pomodoro'].map((page) => (
+          {['anotacoes', 'pomodoro'].map((page) => (
             <Route
               key={page}
               path={`/${page}`}

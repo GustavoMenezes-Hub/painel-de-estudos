@@ -1,0 +1,82 @@
+.painel-page,
+.painel-page__pendencias {
+  display: grid;
+  gap: 16px;
+}
+
+.painel-page__totais {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 230px), 1fr));
+  gap: 14px;
+  margin: 0;
+}
+
+.painel-page__totais > div,
+.painel-page__pendencias {
+  padding: 20px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 20px;
+}
+
+.painel-page__totais dt {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.painel-page__totais dd {
+  margin: 8px 0 0;
+  color: var(--brand-deep);
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+
+.painel-page__atalhos,
+.painel-page__lista li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+}
+
+.painel-page__atalhos a {
+  text-decoration: none;
+}
+
+.painel-page p,
+.painel-page h2,
+.painel-page h3 {
+  margin: 0;
+}
+
+.painel-page h2,
+.painel-page h3 {
+  color: var(--brand-deep);
+}
+
+.painel-page h2 {
+  font-size: 1.125rem;
+}
+
+.painel-page h3 {
+  font-size: 1rem;
+}
+
+.painel-page__lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.painel-page__lista li {
+  justify-content: space-between;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  overflow-wrap: anywhere;
+}
+
+.painel-page__lista p {
+  margin-top: 6px;
+}

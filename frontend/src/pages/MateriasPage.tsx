@@ -1,6 +1,6 @@
 import { BookMarked, Plus } from 'lucide-react';
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Feedback } from '../components/Feedback';
 import { MateriaForm } from '../components/MateriaForm';
 import { api } from '../services/api';
@@ -8,13 +8,25 @@ import type { Materia } from '../types/api';
 import './MateriasPage.css';
 
 export function MateriasPage() {
+  const [parametros, setParametros] = useSearchParams();
+  const requisicoes = useRef<AbortController | null>(null);
   const [materias, setMaterias] = useState<Materia[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [erroLista, setErroLista] = useState('');
-  const [formularioAberto, setFormularioAberto] = useState(false);
+  const formularioAberto = !carregando && parametros.get('nova') === '1';
+
+  function alternarFormulario(aberto: boolean) {
+    setParametros((atuais) => {
+      const proximos = new URLSearchParams(atuais);
+      if (aberto) proximos.set('nova', '1');
+      else proximos.delete('nova');
+      return proximos;
+    }, { replace: true });
+  }
 
   useEffect(() => {
     const controller = new AbortController();
+    requisicoes.current = controller;
 
     async function carregarMaterias() {
       try {
@@ -34,12 +46,15 @@ export function MateriasPage() {
   }, []);
 
   async function cadastrar(dados: Pick<Materia, 'nome' | 'descricao'>) {
+    const signal = requisicoes.current?.signal;
     const materia = await api<Materia>('/api/materias', {
       method: 'POST',
       body: JSON.stringify(dados),
+      signal,
     });
+    if (signal?.aborted) return;
     setMaterias((lista) => [...lista, materia]);
-    setFormularioAberto(false);
+    alternarFormulario(false);
   }
 
   return (
@@ -48,14 +63,14 @@ export function MateriasPage() {
         className="btn primary fit"
         type="button"
         disabled={carregando || formularioAberto}
-        onClick={() => setFormularioAberto(true)}
+        onClick={() => alternarFormulario(true)}
       >
         <Plus size={18} aria-hidden="true" />
         Nova matéria
       </button>
 
       {formularioAberto && (
-        <MateriaForm titulo="Nova matéria" onSave={cadastrar} onCancel={() => setFormularioAberto(false)} />
+        <MateriaForm titulo="Nova matéria" onSave={cadastrar} onCancel={() => alternarFormulario(false)} />
       )}
 
       {carregando && <p role="status">Carregando matérias...</p>}

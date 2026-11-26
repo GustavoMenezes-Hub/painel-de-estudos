@@ -1,6 +1,8 @@
 import { CalendarDays, Check, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
+import { concluirEntrega } from '../services/entregas';
 import type { DadosEntrega, Entrega, Materia } from '../types/api';
 import { compararVencimentos, dataLocal, formatarVencimento, rotuloEntrega } from '../utils/entregas';
 import { EntregaForm } from './EntregaForm';
@@ -13,6 +15,7 @@ interface EntregasSectionProps {
 }
 
 export function EntregasSection({ materia, disabled }: EntregasSectionProps) {
+  const [parametros, setParametros] = useSearchParams();
   const idMateria = materia?.id_materias;
   const url = idMateria ? `/api/materias/${idMateria}/entregas` : '/api/entregas';
   const requisicoes = useRef<AbortController | null>(null);
@@ -20,7 +23,7 @@ export function EntregasSection({ materia, disabled }: EntregasSectionProps) {
   const [materias, setMaterias] = useState<Materia[] | null>(null);
   const [erroEntregas, setErroEntregas] = useState('');
   const [erroMaterias, setErroMaterias] = useState('');
-  const [formulario, setFormulario] = useState<Entrega | 'nova' | null>(null);
+  const [entregaEmEdicao, setEntregaEmEdicao] = useState<Entrega | null>(null);
   const [ocupado, setOcupado] = useState(false);
   const [erroAcao, setErroAcao] = useState('');
   const [mensagem, setMensagem] = useState('');
@@ -52,15 +55,31 @@ export function EntregasSection({ materia, disabled }: EntregasSectionProps) {
 
   const opcoes = materia ? [materia, ...(materias ?? []).filter((item) => item.id_materias !== idMateria)] : materias ?? [];
   const nomes = new Map(opcoes.map((item) => [item.id_materias, item.nome]));
-  const bloqueado = disabled || ocupado || formulario !== null;
-  const entregaEmEdicao = formulario === 'nova' ? undefined : formulario ?? undefined;
+  const novaEntrega = parametros.get('nova') === '1' && entregas !== null && opcoes.length > 0;
+  const formularioAberto = entregaEmEdicao !== null || novaEntrega;
+  const bloqueado = disabled || ocupado || formularioAberto;
   const hoje = dataLocal();
   const TituloEntrega = materia ? 'h3' : 'h2';
 
   function abrirFormulario(valor: Entrega | 'nova') {
     setErroAcao('');
     setMensagem('');
-    setFormulario(valor);
+    if (valor === 'nova') alternarNovaEntrega(true);
+    else setEntregaEmEdicao(valor);
+  }
+
+  function alternarNovaEntrega(aberta: boolean) {
+    setParametros((atuais) => {
+      const proximos = new URLSearchParams(atuais);
+      if (aberta) proximos.set('nova', '1');
+      else proximos.delete('nova');
+      return proximos;
+    }, { replace: true });
+  }
+
+  function fecharFormulario() {
+    if (entregaEmEdicao) setEntregaEmEdicao(null);
+    else alternarNovaEntrega(false);
   }
 
   function atualizarLista(salva: Entrega) {
@@ -81,7 +100,7 @@ export function EntregasSection({ materia, disabled }: EntregasSectionProps) {
     });
     if (signal?.aborted) return;
     atualizarLista(salva);
-    setFormulario(null);
+    fecharFormulario();
   }
 
   async function executarAcao(entrega: Entrega, acao: 'concluir' | 'excluir') {
@@ -98,11 +117,7 @@ export function EntregasSection({ materia, disabled }: EntregasSectionProps) {
         await api(endpoint, { method: 'DELETE', signal });
         if (!signal?.aborted) setEntregas((lista) => lista?.filter((item) => item.id_entregas !== entrega.id_entregas) ?? null);
       } else {
-        const salva = await api<Entrega>(endpoint, {
-          method: 'PATCH',
-          body: JSON.stringify({ situacao: 'realizado' }),
-          signal,
-        });
+        const salva = await concluirEntrega(entrega.id_entregas, signal);
         if (!signal?.aborted) atualizarLista(salva);
       }
     } catch (erro) {
@@ -126,14 +141,14 @@ export function EntregasSection({ materia, disabled }: EntregasSectionProps) {
       {materias?.length === 0 && !materia && <p>Cadastre uma matéria para criar entregas.</p>}
       {erroAcao && <Feedback>{erroAcao}</Feedback>}
       {mensagem && <Feedback type="success">{mensagem}</Feedback>}
-      {formulario && (
+      {formularioAberto && (
         <EntregaForm
           materias={opcoes}
           materiaInicial={idMateria}
-          entrega={entregaEmEdicao}
+          entrega={entregaEmEdicao ?? undefined}
           disabled={disabled}
           onSave={salvar}
-          onCancel={() => setFormulario(null)}
+          onCancel={fecharFormulario}
         />
       )}
 
